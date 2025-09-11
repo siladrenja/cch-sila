@@ -16,6 +16,7 @@ CCH emits #line directives so all line-number-dependent constructs (e.g. compile
 git clone https://github.com/siladrenja/cch-sila
 cd cch-sila
 cmake .
+cmake --build ./build
 ```
 
 And then build the given source files wth your desired build system
