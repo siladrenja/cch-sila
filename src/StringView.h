@@ -15,6 +15,7 @@ using namespace std;
 class StringView {
     const char* mData;
     size_t mSize;
+    std::string mOwned;
 
     StringView(const char* data, size_t size)
         : mData(data), mSize(size) {
@@ -75,6 +76,74 @@ public:
         }
         *offset = ((const char*)loc - mData);
         return true;
+    }
+
+    size_t find(unsigned char c) const {
+        const char* loc = (const char*) ::memchr(mData, c, mSize);
+        if (loc == NULL) {
+            return ~0;
+        }
+        return (loc - mData);
+    }
+
+    size_t reverseFind(unsigned char c, size_t from) {
+        for (size_t i = 1; i <= from; ++i) {
+            if (mData[from - i] == c) {
+                return from - i;
+            }
+        }
+        return ~0;
+    }
+    bool subStrEquals(size_t begin, size_t end, const char* str) const {
+        assert(begin <= end);
+        assert(end <= mSize);
+
+        size_t len = end - begin;
+        size_t strLen = strlen(str);
+        if (len != strLen) {
+            return false;
+        }
+        return ::memcmp(mData + begin, str, len) == 0;
+    }
+
+    void replace(size_t begin, size_t end, const char* replaceWith, size_t replaceWithSize)
+    {
+
+        assert(begin <= end);
+        assert(end <= mSize);
+
+        size_t removed = end - begin;
+
+        if (replaceWithSize == removed) {
+            if (replaceWithSize > 0) {
+                char* dest = const_cast<char*>(mData) + begin;
+                ::memcpy(dest, replaceWith, replaceWithSize);
+            }
+            return;
+        }
+
+        string result;
+        result.reserve(mSize - removed + replaceWithSize);
+
+        if (begin > 0) {
+            result.append(mData, begin);
+        }
+
+        if (replaceWithSize > 0) {
+            result.append(replaceWith, replaceWithSize);
+        }
+
+        if (end < mSize) {
+            result.append(mData + end, mSize - end);
+        }
+
+        mOwned.swap(result);
+        mData = mOwned.data();
+        mSize = mOwned.size();
+    }
+
+    bool StartsWith(const string& str) {
+        return strcmp(mData, str.c_str()) == 0;
     }
 
     string toString() const {

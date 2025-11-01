@@ -28,17 +28,27 @@ class ParseContext {
     ostream* hfile;
 
 public:
+    std::string inputExt;
+    std::string outputExt;
+    std::string fileExt;
 
     ParseContext(const string& cchFilename,
             ostream* ccOutputStream,
             ostream* hOutputStream,
-            bool _emitLineNumbers)
+            bool _emitLineNumbers,
+            const std::string& outputFormat,
+            const std::string& inputExt,
+            const std::string& outputExt,
+            const std::string& fileExt)
         : cchFile(cchFilename),
           emitLineNumbers(_emitLineNumbers),
           ccfile(ccOutputStream),
-          hfile(hOutputStream) {
+          hfile(hOutputStream),
+          inputExt(inputExt),
+          outputExt(outputExt),
+          fileExt(fileExt){
 
-        cc() << "#include \"" << filename(cchFile) << ".h\"" << endl;
+        cc() << "#include \"" << outputFormat << "." << outputExt << "\"" << endl;
         h() << "#pragma once" << endl << endl;
     }
 

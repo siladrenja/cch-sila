@@ -92,6 +92,17 @@ private:
         } else if (mTokens.back().type == PREPROC) {
             // When a preprocessor directive is encountered, dump it
             // and any leading whitespace/comments out to the header.
+
+            if (mTokens.back().value.StartsWith("#include")){
+                size_t end = mTokens.back().value.find('>');
+
+                size_t start = mTokens.back().value.reverseFind('.', end);
+
+                if (mTokens.back().value.subStrEquals(start + 1, end, mCtx->fileExt.c_str())) {
+                    mTokens.back().value.replace(start + 1, end, mCtx->outputExt.c_str(), mCtx->outputExt.size());
+                }
+            }
+
             mTokens.flushToStream(mCtx->h());
         } else if (mTokens.back().type == COLON) {
             if (isLabel(mTokens)) {

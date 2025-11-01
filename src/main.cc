@@ -40,6 +40,14 @@ void version() {
         "Version: " << Version::kBuildVersion << "" << endl;
 }
 
+std::string extractFileExtension(const std::string& filename) {
+    size_t lastDot = filename.find_last_of('.');
+    if (lastDot == std::string::npos || lastDot == filename.length() - 1) {
+        return "";
+    }
+    return filename.substr(lastDot + 1);
+}
+
 namespace Defaults {
     static const char* ccExtension = "cc";
     static const char* hExtension = "h";
@@ -131,7 +139,8 @@ int main(int argc, char** argv) {
 
     stringstream cc, h;
     {   // Split cch into the cc and h buffers.
-        ParseContext ctx(cchFilename, &cc, &h, emitLineNumbers);
+        ParseContext ctx(cchFilename, &cc, &h, emitLineNumbers, outputFormat,
+                         ccExtension, hExtension, extractFileExtension(cchFilename));
         BaseTokenizer tokenizer;
         BaseParser parser(&ctx, &tokenizer);
 
