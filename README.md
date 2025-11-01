@@ -8,6 +8,24 @@ CCH is designed to be hooked into your build system as a step prior to compilati
 
 CCH emits #line directives so all line-number-dependent constructs (e.g. compiler errors, logging systems) are true to the original .cch file.
 
+# command line arguments
+  ```
+     Required:
+      -i <file>, --input=<file> Input CCH file
+   Optional:
+      -o <fmt>, --output=<fmt>  Output location format string (Default: "%p")
+      -d, --debug               Enable debug output
+      -h, --help                Show this help menu and exit
+      -v, --version             Show program version and exit
+      --noLineNumbers           Don't emit #line directives
+      --noBanner                Don't add CCH banner to generated files
+      --ccExtension=<ext>       Set output extension (Default: cc)
+      --hExtension=<ext>        Set output extension (Default: h
+   Experimental:    (**subject to change/removal**)
+      --diff                    Enable content-aware diff for not rewriting
+                                an output if no source change occurred for it
+  ```
+
 ## Building ##
 
 ```
