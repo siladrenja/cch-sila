@@ -86,6 +86,16 @@ public:
         return (loc - mData);
     }
 
+    size_t findAfter(unsigned char c, size_t loc) const {
+        assert(loc < mSize);
+        for (size_t i = loc + 1; i < mSize; ++i) {
+            if (mData[i] == c) {
+                return i;
+            }
+        }
+        return ~0;
+    }
+
     size_t reverseFind(unsigned char c, size_t from) {
         for (size_t i = 1; i <= from; ++i) {
             if (mData[from - i] == c) {
@@ -143,7 +153,8 @@ public:
     }
 
     bool StartsWith(const string& str) {
-        return strcmp(mData, str.c_str()) == 0;
+        auto var = strncmp(mData, str.c_str(), str.size());
+        return var == 0;
     }
 
     string toString() const {

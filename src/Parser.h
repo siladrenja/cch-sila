@@ -6,6 +6,7 @@
 #include "Keywords.h"
 #include "ParseContext.h"
 #include "Version.h"
+#include <sstream>
 
 // Simple parser wrapper that transforms certain keywords
 // into their corresponding token types and passes
@@ -96,6 +97,10 @@ private:
             if (mTokens.back().value.StartsWith("#include")){
                 size_t end = mTokens.back().value.find('>');
 
+                if (end == ~0) {
+                    end = mTokens.back().value.findAfter('"', mTokens.back().value.find('"'));
+                }
+
                 size_t start = mTokens.back().value.reverseFind('.', end);
 
                 if (mTokens.back().value.subStrEquals(start + 1, end, mCtx->fileExt.c_str())) {
@@ -184,6 +189,17 @@ private:
                         }
                         return false;
                     })()) {
+
+            bool isNamespace = false;
+
+            for (int i = 0; i < mTokens.size()-1; ++i) {
+                if (mTokens[i].type == NAMESPACE) isNamespace = true;
+                if (mTokens[i].type == TOKEN) {
+                    if (mTokens[i].value == "namespace") {
+                        isNamespace = true;
+                    }
+                }
+            }
             // It's a class/struct/union/namespace body.
             bool templated = false;
             string scopeName;
@@ -205,7 +221,7 @@ private:
                     templated = true;
                 }
             }
-            mCtx->pushScope(scopeName, templated);
+            if (!isNamespace)mCtx->pushScope(scopeName, templated);
             {
                 StringView body = mTokens.back().value;
                 Location start = mTokens.back().start;
@@ -216,16 +232,21 @@ private:
                 // Remove the brace group from the token stack.
                 mTokens.pop_back();
                 // Flush the opening of the class/namespace out to header.
-                mTokens.flushToStream(mCtx->h());
-                mCtx->h() << "{";
+                stringstream toFlush;
+                mTokens.flushToStream(toFlush);
+                mCtx->h() << toFlush.str() << "{";
+                if (isNamespace)
+                    mCtx->cc() << toFlush.str() << "{";
 
                 WrapperParser wrapper(*this);
                 mTokenizer->tokenize(body, &wrapper, start);
 
                 mTokens.flushToStream(mCtx->h());
                 mCtx->h() << "}";
+                if (isNamespace)
+                    mCtx->cc() << "}";
             }
-            mCtx->popScope();
+            if (!isNamespace) mCtx->popScope();
         } else if (mTokens.back().type == BRACE_GROUP) {
             // Handle functions with bodies.
             int i = 0;
