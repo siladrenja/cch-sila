@@ -308,7 +308,8 @@ private:
                         // a commented out version to annotate.
                         mCtx->cc() << "/* " << mTokens[i].value << " */";
                     } else {
-                        mCtx->cc() << mTokens[i].value;
+                        string toWrite = stripDefaultArgs(mTokens[i].value.toString());
+                        mCtx->cc() << toWrite;
                     }
                 }
                 mCtx->h() << ";";
@@ -319,6 +320,58 @@ private:
                 mTokens.clear();
             }
         }
+    }
+
+    static std::string stripDefaultArgs(const std::string& decl) {
+        std::string out;
+        out.reserve(decl.size());
+
+        bool inParams = false;
+        int parenDepth = 0;
+
+        for (size_t i = 0; i < decl.size(); ++i) {
+            char c = decl[i];
+
+            // Detect entering parameter list
+            if (c == '(') {
+                inParams = true;
+                parenDepth = 1;
+                out.push_back(c);
+                continue;
+            }
+
+            // Track nested parentheses (function pointers, lambdas, etc.)
+            if (inParams) {
+                if (c == '(') parenDepth++;
+                if (c == ')') parenDepth--;
+
+                // If we hit '=', skip until ',' or ')'
+                if (c == '=') {
+                    // Skip '='
+                    i++;
+
+                    // Skip everything until ',' or ')'
+                    while (i < decl.size() && decl[i] != ',' && decl[i] != ')')
+                        i++;
+
+                    // If we stopped at ',' or ')', let the loop handle it normally
+                    if (i < decl.size()) {
+                        c = decl[i];
+                    }
+                }
+
+                // If we reached the end of parameter list
+                if (c == ')' && parenDepth == 0) {
+                    inParams = false;
+                    out.push_back(c);
+                    continue;
+                }
+            }
+
+            out.push_back(c);
+        }
+
+        return out;
     }
 
     static bool isLabel(const TokenStack& tokens) {
